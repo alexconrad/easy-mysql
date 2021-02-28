@@ -14,8 +14,7 @@ $builder->addDefinitions([
     'easyMysqlPass' => 'withc--',
     'easyMysqlName' => null,
 ]);
-
-$builder->addDefinitions('../config/config.php');
+\EasyMysql\PhpDi::addDefinitions($builder);
 $container = $builder->build();
 
 $dataProvider = $container->get(DataProvider::class);
