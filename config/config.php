@@ -7,16 +7,16 @@ use EasyMysql\Enum\MysqlDriver;
 use Psr\Container\ContainerInterface;
 
 return [
-   /*Config::class => DI\create()->constructor(
-       MysqlDriver::MYSQLI(),
-       DI\env('DATABASE_HOST', 'localhost'),
-       DI\env('DATABASE_PORT', 3306),
-       DI\env('DATABASE_USER', 'root'),
-       DI\env('DATABASE_PASS', ''),
-       DI\env('DATABASE_NAME', null),
-       ''
-   ),*/
-   EasyMysql\Connection\ConnectionInterface::class => DI\factory(function (Config $config, ContainerInterface $container) {
+    Config::class => DI\create()->constructor(
+        DI\get('easyMysqlDriver'),
+        DI\get('easyMysqlHost'),
+        DI\get('easyMysqlPort'),
+        DI\get('easyMysqlUser'),
+        DI\get('easyMysqlPass'),
+        DI\get('easyMysqlName'),
+        ''
+    ),
+    EasyMysql\Connection\ConnectionInterface::class => DI\factory(function (Config $config, ContainerInterface $container) {
         if ($config->getMysqlDriver()->equals(MysqlDriver::MYSQLI())) {
             return $container->get(MysqliConnection::class);
         }

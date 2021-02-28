@@ -1,10 +1,20 @@
 <?php
 
 use EasyMysql\DataProvider;
+use EasyMysql\Enum\MysqlDriver;
 
 require_once '../vendor/autoload.php';
 
 $builder = new DI\ContainerBuilder();
+$builder->addDefinitions([
+    'easyMysqlDriver' => MysqlDriver::MYSQLI(),
+    'easyMysqlHost' => '192.168.24.24',
+    'easyMysqlPort' => 3306,
+    'easyMysqlUser' => 'devel',
+    'easyMysqlPass' => 'withc--',
+    'easyMysqlName' => null,
+]);
+
 $builder->addDefinitions('../config/config.php');
 $container = $builder->build();
 
