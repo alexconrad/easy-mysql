@@ -50,4 +50,20 @@ class DataProvider
         return $ret;
     }
 
+    public function row(string $query, array $binds = null): ?array
+    {
+        $result = $this->connection->query($query, $binds);
+        return $this->connection->fetch($result);
+    }
+
+    public function all(string $query, array $binds = null): array
+    {
+        $result = $this->connection->query($query, $binds);
+        $ret = [];
+        while ($row = $this->connection->fetch($result)) {
+            $ret[] = $row;
+        }
+        return $ret;
+    }
+
 }
