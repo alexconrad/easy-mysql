@@ -1,8 +1,7 @@
 {
   "name": "alexconrad/easy-mysql",
   "description": "Most used queries in mysql",
-  "type": "project",
-  "license": "proprietary",
+  "type": "library",
   "require": {
     "php": "8.0.*",
     "myclabs/php-enum": "~1.6.1",
