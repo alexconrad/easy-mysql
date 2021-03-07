@@ -1,80 +1,74 @@
-<?php /** @noinspection PhpComposerExtensionStubsInspection */
+<?php
+/** @noinspection PhpComposerExtensionStubsInspection */
+declare(strict_types=1);
 
 namespace EasyMysql\Connection;
 
 
-use EasyMysql\Config;
+use EasyMysql\Entity\MysqliResultSet;
+use EasyMysql\Entity\ResultSetInterface;
 use EasyMysql\Exceptions\PrepareFailedException;
 use mysqli;
-use mysqli_result;
 
 class MysqliConnection implements ConnectionInterface
 {
-    private $link;
+    private mysqli $mysqli;
 
-    /** @var Config */
-    private Config $config;
-
-    public function __construct(Config $config)
+    public function __construct(mysqli $mysqli)
     {
-        $this->config = $config;
+        $this->mysqli = $mysqli;
     }
 
-    public function connect()
+    /**
+     * @param string $query
+     * @param array|null $binds
+     * @return MysqliResultSet
+     * @throws PrepareFailedException
+     */
+    public function query(string $query, array $binds = null): MysqliResultSet
     {
-        if ($this->link instanceof mysqli) {
-            return;
-        }
-
-        $this->link = mysqli_connect(
-            $this->config->getHost(),
-            $this->config->getUser(),
-            $this->config->getPass(),
-            $this->config->getDatabaseName(),
-            $this->config->getPort()
-        );
-    }
-
-    public function query($query, array $binds = null): ?mysqli_result
-    {
-        $this->connect();
         if ($binds === null) {
-            $result = mysqli_query($this->link, $query);
-            return ($result === false) ? null : $result;
+            $result = mysqli_query($this->mysqli, $query);
+            return new MysqliResultSet($result);
         }
 
-        $stmt = mysqli_prepare($this->link, $query);
+        $stmt = mysqli_prepare($this->mysqli, $query);
         if ($stmt === false) {
-            throw new PrepareFailedException(mysqli_error($this->link));
+            throw new PrepareFailedException(mysqli_error($this->mysqli));
         }
         $types = '';
         foreach ($binds as $param) {
             if (is_float($param)) {
                 $types .= 'd';
-            }
-            elseif (is_int($param)) {
+            } elseif (is_int($param)) {
                 $types .= 'i';
-            }
-            elseif (is_string($param)) {
+            } elseif (is_string($param)) {
                 $types .= 's';
-            }
-            else {
+            } else {
                 $types .= 'b';
             }
         }
 
         mysqli_stmt_bind_param($stmt, $types, ...$binds);
-
         $result = $stmt->execute() ? $stmt->get_result() : null;
-
         $stmt->close();
 
-        return $result;
+        return new MysqliResultSet($result);
     }
 
-    public function fetch($result): ?array
+    public function fetchAssoc(ResultSetInterface $result): ?array
     {
-        return mysqli_fetch_assoc($result);
+        return mysqli_fetch_assoc($result->getResult());
+    }
+
+    public function fetchNum(ResultSetInterface $result): ?array
+    {
+        return mysqli_fetch_array($result->getResult(), MYSQLI_NUM);
+    }
+
+    public function fetchAll(ResultSetInterface $result): ?array
+    {
+        return mysqli_fetch_all($result->getResult(), MYSQLI_ASSOC);
     }
 
 

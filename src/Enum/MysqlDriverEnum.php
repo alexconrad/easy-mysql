@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpUnusedPrivateFieldInspection */
+<?php
+/** @noinspection PhpUnusedPrivateFieldInspection */
+declare(strict_types=1);
 
 namespace EasyMysql\Enum;
 
@@ -10,7 +12,7 @@ use MyCLabs\Enum\Enum;
  * @method static MYSQLI()
  * @method static PDO()
  */
-class MysqlDriver extends Enum
+class MysqlDriverEnum extends Enum
 {
     private const MYSQLI  = 1;
     private const PDO = 2;
