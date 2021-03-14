@@ -5,6 +5,8 @@
   "keywords": [
     "mysql easy"
   ],
+  "homepage": "https://github.com/alexconrad/easy-mysql",
+  "license": "MIT",
   "authors": [
     {
       "name": "Tamcencu Alexandru",
