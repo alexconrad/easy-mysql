@@ -6,7 +6,9 @@ namespace EasyMysql\Connection;
 
 use EasyMysql\Entity\PdoResultSet;
 use EasyMysql\Entity\ResultSetInterface;
+use EasyMysql\Exceptions\EasyMysqlQueryException;
 use PDO;
+use PDOException;
 
 class PDOConnection implements ConnectionInterface
 {
@@ -18,14 +20,24 @@ class PDOConnection implements ConnectionInterface
         $this->pdo = $pdo;
     }
 
-    public function query(string $query, array $binds = null): ResultSetInterface
+    /**
+     * @param string $query
+     * @param array $binds
+     * @return ResultSetInterface
+     * @throws EasyMysqlQueryException
+     */
+    public function query(string $query, array $binds = []): ResultSetInterface
     {
-        if ($binds === null) {
-            return new PdoResultSet($this->pdo->query($query));
+        try {
+            if (count($binds) === 0) {
+                return new PdoResultSet($this->pdo->query($query));
+            }
+            $preparedStatement = $this->pdo->prepare($query);
+            $preparedStatement->execute($binds);
+            return new PdoResultSet($preparedStatement);
+        } catch (PDOException $e) {
+            throw new EasyMysqlQueryException('#' . $e->getCode() . ': ' . $e->getMessage(), (int)$e->getCode(), $e);
         }
-        $preparedStatement = $this->pdo->prepare($query);
-        $preparedStatement->execute($binds);
-        return new PdoResultSet($preparedStatement);
     }
 
     public function fetchAssoc(ResultSetInterface $result): ?array

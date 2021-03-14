@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace EasyMysql\Connection;
 
-
 use EasyMysql\Entity\MysqliResultSet;
 use EasyMysql\Entity\ResultSetInterface;
 use EasyMysql\Exceptions\PrepareFailedException;
+use EasyMysql\Exceptions\EasyMysqlQueryException;
 use mysqli;
+use mysqli_sql_exception;
 
 class MysqliConnection implements ConnectionInterface
 {
@@ -21,37 +22,41 @@ class MysqliConnection implements ConnectionInterface
 
     /**
      * @param string $query
-     * @param array|null $binds
+     * @param array $binds
      * @return MysqliResultSet
-     * @throws PrepareFailedException
+     * @throws PrepareFailedException|EasyMysqlQueryException
      */
-    public function query(string $query, array $binds = null): MysqliResultSet
+    public function query(string $query, array $binds = []): MysqliResultSet
     {
-        if ($binds === null) {
-            $result = mysqli_query($this->mysqli, $query);
-            return new MysqliResultSet($result);
-        }
-
-        $stmt = mysqli_prepare($this->mysqli, $query);
-        if ($stmt === false) {
-            throw new PrepareFailedException(mysqli_error($this->mysqli));
-        }
-        $types = '';
-        foreach ($binds as $param) {
-            if (is_float($param)) {
-                $types .= 'd';
-            } elseif (is_int($param)) {
-                $types .= 'i';
-            } elseif (is_string($param)) {
-                $types .= 's';
-            } else {
-                $types .= 'b';
+        try {
+            if (count($binds) === 0) {
+                $result = mysqli_query($this->mysqli, $query);
+                return new MysqliResultSet($result);
             }
-        }
 
-        mysqli_stmt_bind_param($stmt, $types, ...$binds);
-        $result = $stmt->execute() ? $stmt->get_result() : null;
-        $stmt->close();
+            $stmt = mysqli_prepare($this->mysqli, $query);
+            if ($stmt === false) {
+                throw new PrepareFailedException(mysqli_error($this->mysqli));
+            }
+            $types = '';
+            foreach ($binds as $param) {
+                if (is_float($param)) {
+                    $types .= 'd';
+                } elseif (is_int($param)) {
+                    $types .= 'i';
+                } elseif (is_string($param)) {
+                    $types .= 's';
+                } else {
+                    $types .= 'b';
+                }
+            }
+
+            mysqli_stmt_bind_param($stmt, $types, ...$binds);
+            $result = $stmt->execute() ? $stmt->get_result() : null;
+            $stmt->close();
+        } catch (mysqli_sql_exception $e) {
+            throw new EasyMysqlQueryException($e->getMessage(), $e->getCode(), $e);
+        }
 
         return new MysqliResultSet($result);
     }

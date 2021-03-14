@@ -36,10 +36,13 @@ class Config
     {
         if (self::$driver === null) {
             if ($this->mysqlDriver instanceof mysqli) {
+                mysqli_report(MYSQLI_REPORT_STRICT);
                 self::$driver = new MysqliConnection($this->mysqlDriver);
             } elseif ($this->mysqlDriver instanceof PDO) {
+                $this->mysqlDriver->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 self::$driver = new PDOConnection($this->mysqlDriver);
             } elseif ($this->mysqlDriver->equals(MysqlDriverEnum::MYSQLI())) {
+                mysqli_report(MYSQLI_REPORT_STRICT);
                 self::$driver = new MysqliConnection(
                     new mysqli($this->host, $this->user, $this->pass, $this->database, $this->port)
                 );

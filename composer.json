@@ -1,7 +1,16 @@
 {
   "name": "alexconrad/easy-mysql",
-  "description": "Most used queries in mysql",
   "type": "library",
+  "description": "Most used queries in mysql",
+  "keywords": [
+    "mysql easy"
+  ],
+  "authors": [
+    {
+      "name": "Tamcencu Alexandru",
+      "email": "conrad1@gmail.com"
+    }
+  ],
   "require": {
     "php": "8.0.*",
     "myclabs/php-enum": "~1.6.1",
@@ -11,7 +20,8 @@
   "require-dev": {
     "phpunit/phpunit": "^9.3",
     "ext-mysqli": "*",
-    "ext-pdo": "*"
+    "ext-pdo": "*",
+    "ext-json": "*"
   },
   "autoload": {
     "psr-4": {
