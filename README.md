@@ -1,2 +1,2 @@
 # easy-mysql
-Most used queries in mysql
+Most used queries with mysql
