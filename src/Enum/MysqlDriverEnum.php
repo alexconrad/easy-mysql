@@ -14,6 +14,6 @@ use MyCLabs\Enum\Enum;
  */
 class MysqlDriverEnum extends Enum
 {
-    private const MYSQLI  = 1;
-    private const PDO = 2;
+    private const MYSQLI  = 'MYSQLI';
+    private const PDO = 'PDO';
 }

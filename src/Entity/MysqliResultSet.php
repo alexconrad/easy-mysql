@@ -22,18 +22,17 @@ class MysqliResultSet implements ResultSetInterface
         return $this->result;
     }
 
-    public function getNumRows(): ?int
+     public function freeResult(): void
     {
-        return $this->result?->num_rows;
-    }
-
-    public function freeResult(): void
-    {
-        $this->result?->free_result();
+        if ($this->result instanceof mysqli_result) {
+            $this->result->free_result();
+        }
     }
 
     public function closeResult(): void
     {
-        $this->result?->close();
+        if ($this->result instanceof mysqli_result) {
+            $this->result->close();
+        }
     }
 }

@@ -35,6 +35,17 @@ class EasyMysql
     /**
      * @param $query
      * @param array $binds
+     * @throws Exceptions\EasyMysqlQueryException
+     */
+    public function dmlQuery($query, array $binds = []): void
+    {
+        $this->config->connection()->dmlQuery($query, $binds);
+    }
+
+
+    /**
+     * @param $query
+     * @param array $binds
      * @return array
      * @throws Exceptions\EasyMysqlQueryException
      */
@@ -140,6 +151,52 @@ class EasyMysql
         while ($row = $this->config->connection()->fetchNum($result)) {
             yield $row;
         }
+    }
+
+    /**
+     * @param $query
+     * @param array $binds
+     * @return int|string
+     * @throws Exceptions\EasyMysqlQueryException
+     */
+    public function insert($query, array $binds = []): int|string
+    {
+        $this->dmlQuery($query, $binds);
+        return $this->config->connection()->lastInsertId();
+    }
+
+    /**
+     * @param $query
+     * @param array $binds
+     * @return int
+     * @throws Exceptions\EasyMysqlQueryException
+     */
+    public function update($query, array $binds = []): int
+    {
+        $this->dmlQuery($query, $binds);
+        return $this->config->connection()->affectedRows();
+    }
+
+    /**
+     * @param $query
+     * @param array $binds
+     * @return int
+     * @throws Exceptions\EasyMysqlQueryException
+     */
+    public function delete($query, array $binds = []): int
+    {
+        $this->dmlQuery($query, $binds);
+        return $this->config->connection()->affectedRows();
+    }
+
+    public function lastInsertId()
+    {
+        return $this->config->connection()->lastInsertId();
+    }
+
+    public function affectedRows(): int
+    {
+        return $this->config->connection()->affectedRows();
     }
 
 }

@@ -24,11 +24,15 @@ class PdoResultSet implements ResultSetInterface
 
     public function freeResult(): void
     {
-        $this->result?->closeCursor();
+        if ($this->result instanceof PDOStatement) {
+            $this->result->closeCursor();
+        }
     }
 
     public function closeResult(): void
     {
-        $this->result?->closeCursor();
+        if ($this->result instanceof PDOStatement) {
+            $this->result->closeCursor();
+        }
     }
 }

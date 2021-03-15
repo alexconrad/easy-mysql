@@ -9,11 +9,14 @@ use EasyMysql\Entity\ResultSetInterface;
 use EasyMysql\Exceptions\EasyMysqlQueryException;
 use PDO;
 use PDOException;
+use PDOStatement;
 
 class PDOConnection implements ConnectionInterface
 {
 
     private PDO $pdo;
+
+    private int $affectedRows = 0;
 
     public function __construct(PDO $pdo)
     {
@@ -36,13 +39,35 @@ class PDOConnection implements ConnectionInterface
             $preparedStatement->execute($binds);
             return new PdoResultSet($preparedStatement);
         } catch (PDOException $e) {
-            throw new EasyMysqlQueryException('#' . $e->getCode() . ': ' . $e->getMessage(), (int)$e->getCode(), $e);
+            throw new EasyMysqlQueryException($query, $binds,'#' . $e->getCode() . ': ' . $e->getMessage(), (int)$e->getCode(), $e);
+        }
+    }
+
+    /**
+     * @param string $query
+     * @param array $binds
+     * @throws EasyMysqlQueryException
+     */
+    public function dmlQuery( string $query, array $binds = []): void
+    {
+        try {
+            if (count($binds) === 0) {
+                $this->affectedRows = (int)$this->pdo->exec($query);
+            } else {
+                $preparedStatement = $this->pdo->prepare($query);
+                $preparedStatement->execute($binds);
+                $this->affectedRows = $preparedStatement->rowCount();
+            }
+        } catch (PDOException $e) {
+            throw new EasyMysqlQueryException($query, $binds, '#' . $e->getCode() . ': ' . $e->getMessage(), (int)$e->getCode(), $e);
         }
     }
 
     public function fetchAssoc(ResultSetInterface $result): ?array
     {
-        $assocRow = $result->getResult()->fetch(PDO::FETCH_ASSOC);
+        /** @var PdoResultSet $result */
+        /** @noinspection NullPointerExceptionInspection */
+        $assocRow = $result->getResult()?->fetch(PDO::FETCH_ASSOC);
         if ($assocRow === false) {
             return null;
         }
@@ -51,20 +76,30 @@ class PDOConnection implements ConnectionInterface
 
     public function fetchNum(ResultSetInterface $result): ?array
     {
-        $numRow = $result->getResult()->fetch(PDO::FETCH_NUM);
-        if ($numRow === false) {
-            return null;
-        }
-        return $numRow;
+        /** @var PdoResultSet $result */
+        /** @noinspection NullPointerExceptionInspection */
+        return $result->getResult()?->fetch(PDO::FETCH_NUM);
     }
 
-    public function fetchAll(ResultSetInterface $result): ?array
+    public function fetchAll(ResultSetInterface $result): array
     {
-        $allRows = $result->getResult()->fetchAll(PDO::FETCH_ASSOC);
-        if ($allRows === false) {
-            return null;
+        /** @var PdoResultSet $result */
+        $pdoResult = $result->getResult();
+        if ($pdoResult instanceof PDOStatement) {
+            return $pdoResult->fetchAll(PDO::FETCH_ASSOC);
         }
-        return $allRows;
+        return [];
+    }
+
+    /** @noinspection ReturnTypeCanBeDeclaredInspection */
+    public function lastInsertId()
+    {
+        return $this->pdo->lastInsertId();
+    }
+
+    public function affectedRows(): int
+    {
+        return $this->affectedRows;
     }
 
 
