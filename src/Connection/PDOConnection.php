@@ -78,7 +78,11 @@ class PDOConnection implements ConnectionInterface
     {
         /** @var PdoResultSet $result */
         /** @noinspection NullPointerExceptionInspection */
-        return $result->getResult()?->fetch(PDO::FETCH_NUM);
+        $numRow = $result->getResult()?->fetch(PDO::FETCH_NUM);
+        if ($numRow === false) {
+            return null;
+        }
+        return $numRow;
     }
 
     public function fetchAll(ResultSetInterface $result): array
