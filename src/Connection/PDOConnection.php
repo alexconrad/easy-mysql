@@ -6,6 +6,8 @@ namespace EasyMysql\Connection;
 
 use EasyMysql\Entity\PdoResultSet;
 use EasyMysql\Entity\ResultSetInterface;
+use EasyMysql\Enum\MySqlErrorsEnum;
+use EasyMysql\Exceptions\DuplicateEntryException;
 use EasyMysql\Exceptions\EasyMysqlQueryException;
 use PDO;
 use PDOException;
@@ -46,7 +48,7 @@ class PDOConnection implements ConnectionInterface
     /**
      * @param string $query
      * @param array $binds
-     * @throws EasyMysqlQueryException
+     * @throws EasyMysqlQueryException|DuplicateEntryException
      */
     public function dmlQuery( string $query, array $binds = []): void
     {
@@ -59,7 +61,11 @@ class PDOConnection implements ConnectionInterface
                 $this->affectedRows = $preparedStatement->rowCount();
             }
         } catch (PDOException $e) {
-            throw new EasyMysqlQueryException($query, $binds, '#' . $e->getCode() . ': ' . $e->getMessage(), (int)$e->getCode(), $e);
+            /** @see https://www.php.net/manual/ro/pdo.errorinfo.php */
+            if ($e->errorInfo[1] === MySqlErrorsEnum::DUPLICATE_ENTRY()->getValue()) {
+                throw new DuplicateEntryException($query, $binds, '#' . $e->getCode() . ': ' . $e->getMessage(), (int)$e->errorInfo[1], $e);
+            }
+            throw new EasyMysqlQueryException($query, $binds, '#' . $e->getCode() . ': ' . $e->getMessage(), (int)$e->errorInfo[1], $e);
         }
     }
 

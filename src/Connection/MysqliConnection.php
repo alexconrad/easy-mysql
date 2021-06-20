@@ -6,6 +6,8 @@ namespace EasyMysql\Connection;
 
 use EasyMysql\Entity\MysqliResultSet;
 use EasyMysql\Entity\ResultSetInterface;
+use EasyMysql\Enum\MySqlErrorsEnum;
+use EasyMysql\Exceptions\DuplicateEntryException;
 use EasyMysql\Exceptions\EasyMysqlQueryException;
 use JetBrains\PhpStorm\Pure;
 use mysqli;
@@ -48,12 +50,10 @@ class MysqliConnection implements ConnectionInterface
             $types = $this->getBindTypes($binds);
 
             mysqli_stmt_bind_param($stmt, $types, ...$binds);
-            $execution = $stmt->execute();
-            var_dump($execution);
             $result = $stmt->execute() ? $stmt->get_result() : null;
             $stmt->close();
         } catch (mysqli_sql_exception $e) {
-            throw new EasyMysqlQueryException($e->getMessage(), $e->getCode(), $e);
+            throw new EasyMysqlQueryException($e->getMessage(), $binds,'#'.$e->getCode(), $e->getCode(), $e);
         }
 
         return new MysqliResultSet($result);
@@ -62,7 +62,7 @@ class MysqliConnection implements ConnectionInterface
     /**
      * @param string $query
      * @param array $binds
-     * @throws EasyMysqlQueryException
+     * @throws EasyMysqlQueryException|DuplicateEntryException
      */
     public function dmlQuery(string $query, array $binds = []): void
     {
@@ -87,6 +87,9 @@ class MysqliConnection implements ConnectionInterface
                 $stmt->close();
             }
         } catch (mysqli_sql_exception $e) {
+            if ($e->getCode() === MySqlErrorsEnum::DUPLICATE_ENTRY()->getValue()) {
+                throw new DuplicateEntryException($query, $binds, $e->getMessage(), $e->getCode(), $e);
+            }
             throw new EasyMysqlQueryException($query, $binds, $e->getMessage(), $e->getCode(), $e);
         }
     }

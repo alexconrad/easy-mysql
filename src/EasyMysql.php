@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-
 namespace EasyMysql;
 
-
+use EasyMysql\Exceptions\DuplicateEntryException;
+use EasyMysql\Exceptions\EasyMysqlQueryException;
 use Generator;
 
 /**
@@ -22,34 +22,33 @@ class EasyMysql
     }
 
     /**
-     * @param $query
+     * @param string $query
      * @param array $binds
      * @return Entity\ResultSetInterface
      * @throws Exceptions\EasyMysqlQueryException
      */
-    public function query($query, array $binds = []): Entity\ResultSetInterface
+    public function query(string $query, array $binds = []): Entity\ResultSetInterface
     {
         return $this->config->connection()->query($query, $binds);
     }
 
     /**
-     * @param $query
+     * @param string $query
      * @param array $binds
-     * @throws Exceptions\EasyMysqlQueryException
+     * @throws EasyMysqlQueryException|DuplicateEntryException
      */
-    public function dmlQuery($query, array $binds = []): void
+    public function dmlQuery(string $query, array $binds = []): void
     {
         $this->config->connection()->dmlQuery($query, $binds);
     }
 
-
     /**
-     * @param $query
+     * @param string $query
      * @param array $binds
      * @return array
      * @throws Exceptions\EasyMysqlQueryException
      */
-    public function fetchFirstColumn($query, array $binds = []): array
+    public function fetchFirstColumn(string $query, array $binds = []): array
     {
         $result = $this->query($query, $binds);
         $ret = [];
@@ -137,6 +136,12 @@ class EasyMysql
         return $this->config->connection()->fetchAssoc($result);
     }
 
+    /**
+     * @param string $query
+     * @param array $binds
+     * @return Generator|null
+     * @throws EasyMysqlQueryException
+     */
     public function iterateKeyValue(string $query, array $binds = []): ?Generator
     {
         $result = $this->query($query, $binds);
@@ -154,36 +159,36 @@ class EasyMysql
     }
 
     /**
-     * @param $query
+     * @param string $query
      * @param array $binds
      * @return int|string
-     * @throws Exceptions\EasyMysqlQueryException
+     * @throws EasyMysqlQueryException|DuplicateEntryException
      */
-    public function insert($query, array $binds = []): int|string
+    public function insert(string $query, array $binds = []): int|string
     {
         $this->dmlQuery($query, $binds);
         return $this->config->connection()->lastInsertId();
     }
 
     /**
-     * @param $query
+     * @param string $query
      * @param array $binds
      * @return int
-     * @throws Exceptions\EasyMysqlQueryException
+     * @throws EasyMysqlQueryException|DuplicateEntryException
      */
-    public function update($query, array $binds = []): int
+    public function update(string $query, array $binds = []): int
     {
         $this->dmlQuery($query, $binds);
         return $this->config->connection()->affectedRows();
     }
 
     /**
-     * @param $query
+     * @param string $query
      * @param array $binds
      * @return int
-     * @throws Exceptions\EasyMysqlQueryException
+     * @throws EasyMysqlQueryException|DuplicateEntryException
      */
-    public function delete($query, array $binds = []): int
+    public function delete(string $query, array $binds = []): int
     {
         $this->dmlQuery($query, $binds);
         return $this->config->connection()->affectedRows();

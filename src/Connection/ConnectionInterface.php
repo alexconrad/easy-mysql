@@ -5,6 +5,7 @@ namespace EasyMysql\Connection;
 
 
 use EasyMysql\Entity\ResultSetInterface;
+use EasyMysql\Exceptions\DuplicateEntryException;
 use EasyMysql\Exceptions\EasyMysqlQueryException;
 
 interface ConnectionInterface
@@ -20,9 +21,9 @@ interface ConnectionInterface
     /**
      * @param string $query
      * @param array $binds
-     * @throws EasyMysqlQueryException
+     * @throws EasyMysqlQueryException|DuplicateEntryException
      */
-    public function dmlQuery( string $query, array $binds = []): void;
+    public function dmlQuery(string $query, array $binds = []): void;
     
     public function fetchAssoc(ResultSetInterface $result): ?array;
     public function fetchNum(ResultSetInterface $result): ?array;
