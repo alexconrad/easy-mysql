@@ -14,7 +14,7 @@ use RuntimeException;
 
 class Config
 {
-    private static ?ConnectionInterface $driver = null;
+    private ?ConnectionInterface $driver = null;
     private MysqlDriverEnum|PDO|mysqli $mysqlDriver;
     private string $host;
     private string $user;
@@ -34,20 +34,20 @@ class Config
 
     public function connection(): ConnectionInterface
     {
-        if (self::$driver === null) {
+        if (is_null($this->driver)) {
             if ($this->mysqlDriver instanceof mysqli) {
                 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-                self::$driver = new MysqliConnection($this->mysqlDriver);
+                $this->driver = new MysqliConnection($this->mysqlDriver);
             } elseif ($this->mysqlDriver instanceof PDO) {
                 $this->mysqlDriver->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                self::$driver = new PDOConnection($this->mysqlDriver);
+                $this->driver = new PDOConnection($this->mysqlDriver);
             } elseif ($this->mysqlDriver->equals(MysqlDriverEnum::MYSQLI())) {
                 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-                self::$driver = new MysqliConnection(
+                $this->driver = new MysqliConnection(
                     new mysqli($this->host, $this->user, $this->pass, $this->database, $this->port)
                 );
             } elseif ($this->mysqlDriver->equals(MysqlDriverEnum::PDO())) {
-                self::$driver = new PDOConnection(
+                $this->driver = new PDOConnection(
                     new PDO(
                         'mysql:dbname=' . $this->database . ';host=' . $this->host . ';port=' . $this->port,
                         $this->user,
@@ -60,6 +60,6 @@ class Config
             }
         }
 
-        return self::$driver;
+        return $this->driver;
     }
 }
